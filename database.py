@@ -1,25 +1,25 @@
 # pyrefly: ignore [missing-import]
+import os
+# pyrefly: ignore [missing-import]
 from sqlalchemy import create_engine
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# SQLite Database URL
-# This will create 'lms.db' in the root directory.
-SQLALCHEMY_DATABASE_URL = "sqlite:///./lms.db"
+database_url = os.getenv("DATABASE_URL", "sqlite:///./lms.db")
 
-# Create the SQLAlchemy engine.
-# connect_args={"check_same_thread": False} is required for SQLite when used with multithreaded frameworks like FastAPI.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Fix Render's legacy postgres:// protocol string for SQLAlchemy compatibility
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-# Create a sessionmaker to generate database sessions
+if database_url.startswith("sqlite"):
+    engine = create_engine(database_url, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(database_url)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Declarative base class for models
 Base = declarative_base()
 
-# Session generator to handle database connections per request
+
 def get_db():
     db = SessionLocal()
     try:
