@@ -442,6 +442,14 @@ def enroll_course(course_id: int, db: Session = Depends(get_db), current_user: m
     return new_enrollment
 
 
+@app.get("/enrollments", response_model=List[EnrollmentResponse])
+def get_user_enrollments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """
+    Returns the list of enrollments for the authenticated user.
+    """
+    return db.query(models.Enrollment).filter(models.Enrollment.user_id == current_user.id).all()
+
+
 # 5. QUIZ ENDPOINTS
 
 @app.post("/lessons/{lesson_id}/quiz", response_model=QuizResponse, status_code=status.HTTP_201_CREATED)

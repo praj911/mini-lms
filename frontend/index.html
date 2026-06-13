@@ -250,6 +250,12 @@
         </button>
       </div>
 
+      <!-- Dashboard Filters (Visible to students) -->
+      <div id="dashboard-filter-bar" class="mb-8 flex gap-2.5 hidden bg-slate-900/60 p-1.5 rounded-2xl w-fit border border-slate-800/80">
+        <button onclick="setDashboardFilter('all')" id="filter-all-btn" class="py-2 px-4 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md shadow-indigo-600/10 border border-brand-500/20 transition-all">Show All Courses</button>
+        <button onclick="setDashboardFilter('enrolled')" id="filter-enrolled-btn" class="py-2 px-4 rounded-xl text-xs font-semibold bg-transparent text-slate-400 border border-transparent hover:text-white transition-all">My Enrolled Courses</button>
+      </div>
+
       <!-- Course List Grid -->
       <div id="course-list-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Courses injected via Javascript -->
@@ -484,6 +490,8 @@
       role: localStorage.getItem("role") || null,
       username: localStorage.getItem("username") || null,
       courses: [],
+      enrolledCourseIds: [],
+      filter: "all",
       currentCourse: null,
       lessons: [],
       currentLesson: null,
@@ -556,11 +564,13 @@
           document.getElementById("teacher-add-lesson-btn").classList.remove("hidden");
           document.getElementById("teacher-add-quiz-btn").classList.remove("hidden");
           document.getElementById("student-complete-lesson-btn").classList.add("hidden");
+          document.getElementById("dashboard-filter-bar").classList.add("hidden");
         } else {
           document.getElementById("teacher-create-course-btn").classList.add("hidden");
           document.getElementById("teacher-add-lesson-btn").classList.add("hidden");
           document.getElementById("teacher-add-quiz-btn").classList.add("hidden");
           document.getElementById("student-complete-lesson-btn").classList.remove("hidden");
+          document.getElementById("dashboard-filter-bar").classList.remove("hidden");
         }
 
         switchView("dashboard");
@@ -568,6 +578,7 @@
         document.getElementById("app-sidebar").classList.add("hidden");
         document.getElementById("mobile-header").classList.add("hidden");
         document.getElementById("mobile-header").classList.remove("flex");
+        document.getElementById("dashboard-filter-bar").classList.add("hidden");
         switchView("auth");
       }
     }
@@ -700,6 +711,18 @@
       try {
         const courses = await apiRequest("/courses");
         state.courses = courses;
+
+        if (state.role === "student" && state.token) {
+          try {
+            const enrollments = await apiRequest("/enrollments");
+            state.enrolledCourseIds = enrollments.map(e => e.course_id);
+          } catch (err) {
+            state.enrolledCourseIds = [];
+          }
+        } else {
+          state.enrolledCourseIds = [];
+        }
+
         renderCourses();
       } catch (err) {}
     }
@@ -709,19 +732,31 @@
       const emptyState = document.getElementById("course-empty-state");
       grid.innerHTML = "";
 
-      if (state.courses.length === 0) {
+      // Filter courses if "enrolled" filter is active
+      let coursesToRender = state.courses;
+      if (state.role === "student" && state.filter === "enrolled") {
+        coursesToRender = state.courses.filter(course => state.enrolledCourseIds.includes(course.id));
+      }
+
+      if (coursesToRender.length === 0) {
         emptyState.classList.remove("hidden");
         return;
       }
       emptyState.classList.add("hidden");
 
-      state.courses.forEach(course => {
+      coursesToRender.forEach(course => {
         const card = document.createElement("div");
         card.className = "rounded-2xl glass p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-600/5 relative overflow-hidden group";
         
-        const enrollBtn = state.role === "student" 
-          ? `<button onclick="handleEnroll(${course.id}, event)" class="py-2 px-4 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all transform active:scale-95">Enroll Now</button>`
-          : ``;
+        let enrollBtn = "";
+        if (state.role === "student") {
+          const isEnrolled = state.enrolledCourseIds.includes(course.id);
+          if (isEnrolled) {
+            enrollBtn = `<button onclick="selectCourse(${course.id})" class="py-2 px-3 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white rounded-xl text-[10px] font-bold transition-all flex items-center gap-1">Enrolled ✅ — View</button>`;
+          } else {
+            enrollBtn = `<button onclick="handleEnroll(${course.id}, event)" class="py-2 px-4 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all transform active:scale-95">Enroll Now</button>`;
+          }
+        }
 
         card.innerHTML = `
           <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-bl-full group-hover:bg-indigo-500/20 transition-all"></div>
@@ -747,7 +782,30 @@
       try {
         await apiRequest(`/enroll/${courseId}`, { method: "POST" });
         showToast("Enrolled in course successfully!");
+        
+        // Add to enrolled list and re-render instantly
+        if (!state.enrolledCourseIds.includes(courseId)) {
+          state.enrolledCourseIds.push(courseId);
+        }
+        renderCourses();
       } catch (err) {}
+    }
+
+    function setDashboardFilter(filterType) {
+      state.filter = filterType;
+      
+      const allBtn = document.getElementById("filter-all-btn");
+      const enrolledBtn = document.getElementById("filter-enrolled-btn");
+      
+      if (filterType === 'all') {
+        allBtn.className = "py-2 px-4 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md shadow-indigo-600/10 border border-brand-500/20 transition-all";
+        enrolledBtn.className = "py-2 px-4 rounded-xl text-xs font-semibold bg-transparent text-slate-400 border border-transparent hover:text-white transition-all";
+      } else {
+        allBtn.className = "py-2 px-4 rounded-xl text-xs font-semibold bg-transparent text-slate-400 border border-transparent hover:text-white transition-all";
+        enrolledBtn.className = "py-2 px-4 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md shadow-indigo-600/10 border border-brand-500/20 transition-all";
+      }
+      
+      renderCourses();
     }
 
     // Modal Create Course actions
