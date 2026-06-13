@@ -1,6 +1,8 @@
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, Depends, HTTPException, status
 # pyrefly: ignore [missing-import]
+from fastapi.staticfiles import StaticFiles
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
@@ -30,6 +32,8 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods
     allow_headers=["*"],  # Allows all headers
 )
+
+app.mount('/frontend', StaticFiles(directory='frontend'), name='frontend')
 
 # Automatically create database tables on startup
 models.Base.metadata.create_all(bind=engine)
