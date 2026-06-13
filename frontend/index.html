@@ -688,21 +688,38 @@
     }
 
     function handleLogout() {
+      // Clear token and related items from localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('username');
+      localStorage.clear();
+
+      // Reset active user state variables to null
       state.token = null;
       state.role = null;
       state.username = null;
-      localStorage.clear();
-      showToast("Signed out successfully.", "info");
-      
-      // Reset Viewer states
       state.currentCourse = null;
       state.currentLesson = null;
-      
-      const lessonNav = document.getElementById("nav-lesson-viewer");
-      lessonNav.classList.add("opacity-50", "cursor-not-allowed");
-      lessonNav.disabled = true;
 
-      checkAuthState();
+      // Clear profile elements
+      document.getElementById("user-display-name").textContent = "";
+      document.getElementById("user-display-role").textContent = "";
+      document.getElementById("user-avatar").textContent = "";
+
+      // Hide sidebar and mobile header containers
+      document.getElementById("app-sidebar").classList.add("hidden");
+      const mobileHeader = document.getElementById("mobile-header");
+      if (mobileHeader) {
+        mobileHeader.classList.add("hidden");
+        mobileHeader.classList.remove("flex");
+      }
+      document.getElementById("dashboard-filter-bar").classList.add("hidden");
+
+      // Switch to unauthenticated auth view
+      switchView("auth");
+
+      // Force immediate hard refresh to boot fresh into unauthenticated state
+      window.location.reload();
     }
 
     // --- COURSE OPERATIONS ---
