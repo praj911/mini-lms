@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumen - Mini LMS</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            dark: {
+              900: '#0b0f19',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151',
+            }
+          }
+        },
+      },
+    }
+  </script>
+  <!-- Custom CSS Animations and Scrollbars -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .glass-input {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+    /* Typing Dot Pulse */
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    .typing-dot {
+      animation: pulseDot 1.4s infinite;
+    }
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  </style>
+</head>
+<body class="bg-dark-900 text-slate-100 min-h-screen flex overflow-hidden font-sans antialiased">
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+  <!-- Sidebar -->
+  <aside id="app-sidebar" class="w-64 glass border-r border-slate-800 flex flex-col justify-between shrink-0 hidden">
+    <!-- Header -->
+    <div>
+      <div class="p-6 flex items-center gap-3">
+        <div class="h-9 w-9 bg-brand-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-600/30">
+          <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <span class="font-extrabold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-indigo-400">LUMEN</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="px-4 py-6 flex flex-col gap-2">
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-400 hover:text-white hover:bg-slate-800/40">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+          </svg>
+          Courses Dashboard
+        </button>
+
+        <button onclick="switchView('lesson-viewer')" id="nav-lesson-viewer" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-400 hover:text-white hover:bg-slate-800/40 opacity-50 cursor-not-allowed" disabled>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          Active Lesson
+        </button>
+      </nav>
+    </div>
+
+    <!-- User Section -->
+    <div class="p-4 border-t border-slate-800 flex flex-col gap-3">
+      <div class="flex items-center gap-3 px-2">
+        <div class="h-10 w-10 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 text-sm font-bold text-indigo-400" id="user-avatar">
+          U
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm leading-tight text-slate-200" id="user-display-name">Username</h4>
+          <span class="text-xs text-indigo-400 uppercase tracking-widest font-bold" id="user-display-role">Student</span>
+        </div>
+      </div>
+      <button onclick="handleLogout()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-red-900/20 hover:text-red-400 text-slate-300 rounded-xl transition-all text-sm font-semibold border border-slate-700/60 flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main View Area -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+
+    <!-- View: Authentication -->
+    <section id="view-auth" class="flex-1 flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-dark-900 to-dark-900">
+      <div class="w-full max-w-md p-8 rounded-2xl glass shadow-2xl relative overflow-hidden transition-all duration-500">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+
+        <!-- Login Form -->
+        <div id="auth-login-panel">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-300">Welcome Back</h2>
+            <p class="text-slate-400 mt-2 text-sm">Log in to continue your LMS journey</p>
+          </div>
+          <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
+              <input type="text" id="login-username" required class="w-full px-4 py-3 rounded-xl glass-input outline-none text-slate-200 text-sm transition-all focus:outline-none" placeholder="Enter your username">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Password</label>
+              <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-xl glass-input outline-none text-slate-200 text-sm transition-all focus:outline-none" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl transition-all font-semibold text-sm shadow-lg shadow-indigo-600/30 mt-6 transform active:scale-95">
+              Sign In
+            </button>
+          </form>
+          <div class="mt-6 text-center text-sm">
+            <span class="text-slate-400">Need an account?</span>
+            <button onclick="toggleAuthPanel('register')" class="text-indigo-400 hover:text-indigo-300 font-bold ml-1 transition-all underline">Register here</button>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="auth-register-panel" class="hidden">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-300">Create Account</h2>
+            <p class="text-slate-400 mt-2 text-sm">Join the mini LMS platform today</p>
+          </div>
+          <form onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
+              <input type="text" id="register-username" required class="w-full px-4 py-3 rounded-xl glass-input outline-none text-slate-200 text-sm transition-all focus:outline-none" placeholder="Choose a username">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Password</label>
+              <input type="password" id="register-password" required class="w-full px-4 py-3 rounded-xl glass-input outline-none text-slate-200 text-sm transition-all focus:outline-none" placeholder="••••••••">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Account Role</label>
+              <select id="register-role" class="w-full px-4 py-3 rounded-xl glass-input outline-none text-slate-300 text-sm transition-all focus:outline-none">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl transition-all font-semibold text-sm shadow-lg shadow-indigo-600/30 mt-6 transform active:scale-95">
+              Sign Up
+            </button>
+          </form>
+          <div class="mt-6 text-center text-sm">
+            <span class="text-slate-400">Already registered?</span>
+            <button onclick="toggleAuthPanel('login')" class="text-indigo-400 hover:text-indigo-300 font-bold ml-1 transition-all underline">Login here</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Dashboard -->
+    <section id="view-dashboard" class="flex-1 overflow-y-auto p-8 bg-dark-900 hidden">
+      <!-- Welcome Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-3xl font-extrabold text-white tracking-tight">Welcome to your Dashboard</h1>
+          <p class="text-slate-400 text-sm mt-1">Explore courses and jump back into your studies.</p>
+        </div>
+
+        <!-- Teacher Create Course Trigger -->
+        <button id="teacher-create-course-btn" onclick="openCreateCourseModal()" class="hidden py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Course
+        </button>
+      </div>
+
+      <!-- Course List Grid -->
+      <div id="course-list-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Courses injected via Javascript -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="course-empty-state" class="hidden flex flex-col items-center justify-center p-12 bg-slate-800/20 border border-dashed border-slate-700/60 rounded-2xl text-center">
+        <svg class="w-12 h-12 text-slate-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <h3 class="text-lg font-bold text-slate-300">No Courses Available</h3>
+        <p class="text-slate-500 text-sm mt-1">There are no courses loaded in the database yet.</p>
+      </div>
+
+      <!-- Modal: Create Course -->
+      <div id="create-course-modal" class="fixed inset-0 bg-dark-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md p-6 rounded-2xl glass relative">
+          <h3 class="text-xl font-bold text-white mb-4">Create New Course</h3>
+          <form onsubmit="handleCreateCourseSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Course Title</label>
+              <input type="text" id="new-course-title" required class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+              <textarea id="new-course-description" rows="3" class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+              <button type="button" onclick="closeCreateCourseModal()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all">Cancel</button>
+              <button type="submit" class="py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-all">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Lesson Viewer & Quiz & AI Tutor Split -->
+    <section id="view-lesson-viewer" class="flex-1 flex overflow-hidden hidden bg-[#0b0f19]">
+      <!-- Course Lesson Tree Sidebar (Left) -->
+      <aside class="w-72 bg-dark-900/60 border-r border-slate-800/80 flex flex-col shrink-0">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-sm text-slate-300 tracking-wide uppercase">Course Lessons</h3>
+          <button id="teacher-add-lesson-btn" onclick="openAddLessonModal()" class="hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="Add New Lesson">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+        <div id="lesson-sidebar-list" class="flex-1 overflow-y-auto p-3 flex flex-col gap-1.5">
+          <!-- Lessons loaded via Javascript -->
+        </div>
+      </aside>
+
+      <!-- Main Lesson & Quiz Area -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top bar -->
+        <header class="h-16 px-6 border-b border-slate-800 flex items-center justify-between shrink-0 bg-dark-900/40">
+          <h2 id="active-course-title" class="font-bold text-slate-200 truncate pr-4 text-base">Select a Course</h2>
+          <button id="ai-tutor-trigger" onclick="toggleAiTutorPanel()" class="py-1.5 px-3.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+            AI Tutor Assistance
+          </button>
+        </header>
+
+        <!-- Dynamic Content Body -->
+        <div id="lesson-content-placeholder" class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+          <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <h3 class="text-lg font-bold text-slate-300">No Lesson Selected</h3>
+          <p class="text-sm text-slate-500 mt-1">Please select a lesson from the sidebar list to start studying.</p>
+        </div>
+
+        <div id="lesson-split-container" class="flex-1 flex overflow-hidden hidden">
+          <!-- Split Screen: Left (Lesson Text) -->
+          <div class="flex-1 overflow-y-auto p-8 border-r border-slate-800/80">
+            <div class="max-w-3xl mx-auto space-y-6">
+              <h1 id="active-lesson-title" class="text-3xl font-extrabold text-white tracking-tight">Lesson Title</h1>
+              <div class="h-0.5 bg-slate-800"></div>
+              <article id="active-lesson-text" class="text-slate-300 leading-relaxed text-base prose prose-invert max-w-none">
+                <!-- Content -->
+              </article>
+              <div class="pt-8">
+                <!-- Mark as Complete -->
+                <button id="student-complete-lesson-btn" onclick="handleMarkComplete()" class="hidden py-3 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/20 items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Mark Lesson as Completed
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Split Screen: Right (Quiz View) -->
+          <div class="w-80 bg-dark-900/30 overflow-y-auto p-6 shrink-0 flex flex-col gap-6">
+            <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+              <h3 class="font-extrabold text-sm text-slate-200 uppercase tracking-widest">Lesson Quiz</h3>
+              <!-- Teacher Add Quiz Question -->
+              <button id="teacher-add-quiz-btn" onclick="openAddQuizModal()" class="hidden p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all" title="Add Quiz Question">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quiz List Container -->
+            <div id="quiz-widget-container" class="space-y-6 flex-1">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide-Out AI Tutor Panel -->
+      <div id="ai-tutor-panel" class="w-96 glass border-l border-indigo-500/20 flex flex-col shrink-0 transform translate-x-full transition-transform duration-300 ease-in-out absolute right-0 top-0 bottom-0 z-40 hidden">
+        <header class="p-4 border-b border-slate-800/80 flex items-center justify-between bg-dark-900/50">
+          <div class="flex items-center gap-2.5">
+            <div class="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+              <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-200">Gemini AI Tutor</h3>
+              <span class="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                gemini-2.5-flash
+              </span>
+            </div>
+          </div>
+          <button onclick="toggleAiTutorPanel()" class="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Message logs -->
+        <div id="ai-chat-history" class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Welcome message is default -->
+          <div class="flex gap-2.5 max-w-[85%]">
+            <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+            <div class="p-3 bg-slate-800/80 rounded-2xl rounded-tl-none border border-slate-700/50 text-slate-300 text-xs leading-relaxed">
+              Hello! I'm your AI Academic Tutor for this lesson. Ask me any question related to the material above, and I'll clarify it for you!
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div id="ai-typing-indicator" class="hidden px-4 py-2 flex items-center gap-2.5 max-w-[85%]">
+          <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+          <div class="p-3 bg-slate-800/80 rounded-2xl rounded-tl-none border border-slate-700/50 flex items-center gap-1">
+            <div class="w-2.5 h-2.5 bg-indigo-400 rounded-full typing-dot"></div>
+            <div class="w-2.5 h-2.5 bg-indigo-400 rounded-full typing-dot"></div>
+            <div class="w-2.5 h-2.5 bg-indigo-400 rounded-full typing-dot"></div>
+          </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="p-4 border-t border-slate-800/80 bg-dark-900/50">
+          <form onsubmit="handleAskTutor(event)" class="flex gap-2">
+            <input type="text" id="ai-question-input" required class="flex-1 px-4 py-2.5 rounded-xl glass-input text-xs outline-none text-slate-200" placeholder="Type your question...">
+            <button type="submit" class="py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-indigo-600/20 shrink-0">
+              Ask Tutor
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal: Add Lesson (Teacher Only) -->
+      <div id="add-lesson-modal" class="fixed inset-0 bg-dark-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md p-6 rounded-2xl glass relative">
+          <h3 class="text-xl font-bold text-white mb-4">Add Lesson</h3>
+          <form onsubmit="handleCreateLessonSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Lesson Title</label>
+              <input type="text" id="new-lesson-title" required class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Content</label>
+              <textarea id="new-lesson-content" rows="6" class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none" placeholder="Enter lesson notes, code, explanations..."></textarea>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+              <button type="button" onclick="closeAddLessonModal()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all">Cancel</button>
+              <button type="submit" class="py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-all">Add Lesson</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal: Add Quiz Question (Teacher Only) -->
+      <div id="add-quiz-modal" class="fixed inset-0 bg-dark-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md p-6 rounded-2xl glass relative">
+          <h3 class="text-xl font-bold text-white mb-4">Add Quiz Question</h3>
+          <form onsubmit="handleCreateQuizSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Question Prompt</label>
+              <textarea id="new-quiz-question" required rows="3" class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none" placeholder="e.g. What is the value of 5 + 5?"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Correct Answer</label>
+              <input type="text" id="new-quiz-answer" required class="w-full px-4 py-2.5 rounded-xl glass-input text-slate-200 text-sm outline-none" placeholder="e.g. 10">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+              <button type="button" onclick="closeAddQuizModal()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all">Cancel</button>
+              <button type="submit" class="py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-all">Add Question</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    // Application state variables
+    let state = {
+      token: localStorage.getItem("token") || null,
+      role: localStorage.getItem("role") || null,
+      username: localStorage.getItem("username") || null,
+      courses: [],
+      currentCourse: null,
+      lessons: [],
+      currentLesson: null,
+      quizzes: [],
+    };
+
+    // Initialize application state
+    document.addEventListener("DOMContentLoaded", () => {
+      checkAuthState();
+    });
+
+    // Toast Alerts helper
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `p-4 rounded-xl shadow-2xl flex items-center justify-between text-xs font-semibold pointer-events-auto border transition-all duration-300 transform translate-y-2 opacity-0 glass select-none`;
+      
+      let colorClass = "text-emerald-400 border-emerald-500/20";
+      let icon = `<svg class="w-4 h-4 mr-2 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      
+      if (type === "error") {
+        colorClass = "text-red-400 border-red-500/20";
+        icon = `<svg class="w-4 h-4 mr-2 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      } else if (type === "info") {
+        colorClass = "text-indigo-400 border-indigo-500/20";
+        icon = `<svg class="w-4 h-4 mr-2 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      }
+      
+      toast.className += ` ${colorClass}`;
+      toast.innerHTML = `<div class="flex items-center">${icon}<span>${message}</span></div>`;
+      
+      container.appendChild(toast);
+      
+      // Force Reflow & Animate In
+      setTimeout(() => {
+        toast.classList.remove("translate-y-2", "opacity-0");
+      }, 50);
+
+      // Auto Dismiss after 4 seconds
+      setTimeout(() => {
+        toast.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Toggle between login and register views inside Auth Panel
+    function toggleAuthPanel(panel) {
+      if (panel === "login") {
+        document.getElementById("auth-login-panel").classList.remove("hidden");
+        document.getElementById("auth-register-panel").classList.add("hidden");
+      } else {
+        document.getElementById("auth-login-panel").classList.add("hidden");
+        document.getElementById("auth-register-panel").classList.remove("hidden");
+      }
+    }
+
+    // Check auth token state and adjust sidebar / view
+    function checkAuthState() {
+      if (state.token) {
+        document.getElementById("app-sidebar").classList.remove("hidden");
+        document.getElementById("user-display-name").textContent = state.username;
+        document.getElementById("user-display-role").textContent = state.role;
+        document.getElementById("user-avatar").textContent = state.username.charAt(0).toUpperCase();
+
+        // Adjust visibility for teacher features
+        if (state.role === "teacher") {
+          document.getElementById("teacher-create-course-btn").classList.remove("hidden");
+          document.getElementById("teacher-add-lesson-btn").classList.remove("hidden");
+          document.getElementById("teacher-add-quiz-btn").classList.remove("hidden");
+          document.getElementById("student-complete-lesson-btn").classList.add("hidden");
+        } else {
+          document.getElementById("teacher-create-course-btn").classList.add("hidden");
+          document.getElementById("teacher-add-lesson-btn").classList.add("hidden");
+          document.getElementById("teacher-add-quiz-btn").classList.add("hidden");
+          document.getElementById("student-complete-lesson-btn").classList.remove("hidden");
+        }
+
+        switchView("dashboard");
+      } else {
+        document.getElementById("app-sidebar").classList.add("hidden");
+        switchView("auth");
+      }
+    }
+
+    // Navigation state manager
+    function switchView(viewName) {
+      // Hide all panels
+      document.getElementById("view-auth").classList.add("hidden");
+      document.getElementById("view-dashboard").classList.add("hidden");
+      document.getElementById("view-lesson-viewer").classList.add("hidden");
+
+      // Reset Active Nav Button styles
+      const dashboardNav = document.getElementById("nav-dashboard");
+      const lessonNav = document.getElementById("nav-lesson-viewer");
+      [dashboardNav, lessonNav].forEach(btn => {
+        btn.classList.remove("text-white", "bg-slate-800/40");
+        btn.classList.add("text-slate-400");
+      });
+
+      if (viewName === "auth") {
+        document.getElementById("view-auth").classList.remove("hidden");
+      } else if (viewName === "dashboard") {
+        document.getElementById("view-dashboard").classList.remove("hidden");
+        dashboardNav.classList.add("text-white", "bg-slate-800/40");
+        dashboardNav.classList.remove("text-slate-400");
+        fetchCourses();
+      } else if (viewName === "lesson-viewer") {
+        document.getElementById("view-lesson-viewer").classList.remove("hidden");
+        lessonNav.classList.add("text-white", "bg-slate-800/40");
+        lessonNav.classList.remove("text-slate-400");
+      }
+    }
+
+    // Core Fetch API Wrapper (injects bearer token)
+    async function apiRequest(endpoint, options = {}) {
+      const url = `${API_URL}${endpoint}`;
+      const headers = {
+        "Content-Type": "application/json",
+        ...(state.token ? { "Authorization": `Bearer ${state.token}` } : {}),
+        ...(options.headers || {})
+      };
+
+      try {
+        const response = await fetch(url, { ...options, headers });
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.detail || "Something went wrong");
+        }
+        return data;
+      } catch (err) {
+        showToast(err.message, "error");
+        throw err;
+      }
+    }
+
+    // --- FORM ACTIONS ---
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById("login-username").value;
+      const passwordInput = document.getElementById("login-password").value;
+
+      try {
+        const data = await apiRequest("/login", {
+          method: "POST",
+          body: JSON.stringify({ username: usernameInput, password: passwordInput })
+        });
+
+        // Save states
+        state.token = data.access_token;
+        state.role = data.role;
+        state.username = usernameInput;
+        
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("username", usernameInput);
+
+        showToast(`Welcome back, ${usernameInput}!`);
+        checkAuthState();
+      } catch (err) {}
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById("register-username").value;
+      const passwordInput = document.getElementById("register-password").value;
+      const roleInput = document.getElementById("register-role").value;
+
+      try {
+        await apiRequest("/register", {
+          method: "POST",
+          body: JSON.stringify({ username: usernameInput, password: passwordInput, role: roleInput })
+        });
+
+        showToast("Registration successful! You can now log in.");
+        toggleAuthPanel("login");
+      } catch (err) {}
+    }
+
+    function handleLogout() {
+      state.token = null;
+      state.role = null;
+      state.username = null;
+      localStorage.clear();
+      showToast("Signed out successfully.", "info");
+      
+      // Reset Viewer states
+      state.currentCourse = null;
+      state.currentLesson = null;
+      
+      const lessonNav = document.getElementById("nav-lesson-viewer");
+      lessonNav.classList.add("opacity-50", "cursor-not-allowed");
+      lessonNav.disabled = true;
+
+      checkAuthState();
+    }
+
+    // --- COURSE OPERATIONS ---
+
+    async function fetchCourses() {
+      try {
+        const courses = await apiRequest("/courses");
+        state.courses = courses;
+        renderCourses();
+      } catch (err) {}
+    }
+
+    function renderCourses() {
+      const grid = document.getElementById("course-list-grid");
+      const emptyState = document.getElementById("course-empty-state");
+      grid.innerHTML = "";
+
+      if (state.courses.length === 0) {
+        emptyState.classList.remove("hidden");
+        return;
+      }
+      emptyState.classList.add("hidden");
+
+      state.courses.forEach(course => {
+        const card = document.createElement("div");
+        card.className = "rounded-2xl glass p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-600/5 relative overflow-hidden group";
+        
+        const enrollBtn = state.role === "student" 
+          ? `<button onclick="handleEnroll(${course.id}, event)" class="py-2 px-4 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all transform active:scale-95">Enroll Now</button>`
+          : ``;
+
+        card.innerHTML = `
+          <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-bl-full group-hover:bg-indigo-500/20 transition-all"></div>
+          <div>
+            <span class="text-[10px] text-indigo-400 font-extrabold uppercase tracking-widest">COURSE #${course.id}</span>
+            <h3 class="text-xl font-bold text-slate-100 mt-2 line-clamp-1">${course.title}</h3>
+            <p class="text-slate-400 text-xs mt-3 leading-relaxed line-clamp-3">${course.description || "No description provided."}</p>
+          </div>
+          <div class="flex items-center justify-between mt-8 pt-4 border-t border-slate-800/60">
+            ${enrollBtn}
+            <button onclick="selectCourse(${course.id})" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ml-auto">
+              Open Lessons
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function handleEnroll(courseId, e) {
+      e.stopPropagation();
+      try {
+        await apiRequest(`/enroll/${courseId}`, { method: "POST" });
+        showToast("Enrolled in course successfully!");
+      } catch (err) {}
+    }
+
+    // Modal Create Course actions
+    function openCreateCourseModal() {
+      document.getElementById("create-course-modal").classList.remove("hidden");
+    }
+    function closeCreateCourseModal() {
+      document.getElementById("create-course-modal").classList.add("hidden");
+    }
+    async function handleCreateCourseSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById("new-course-title").value;
+      const description = document.getElementById("new-course-description").value;
+
+      try {
+        await apiRequest("/courses", {
+          method: "POST",
+          body: JSON.stringify({ title, description })
+        });
+        showToast("Course created successfully!");
+        closeCreateCourseModal();
+        
+        // Reset fields
+        document.getElementById("new-course-title").value = "";
+        document.getElementById("new-course-description").value = "";
+
+        fetchCourses();
+      } catch (err) {}
+    }
+
+    // --- LESSON OPERATIONS ---
+
+    async function selectCourse(courseId) {
+      const course = state.courses.find(c => c.id === courseId);
+      if (!course) return;
+
+      state.currentCourse = course;
+      state.currentLesson = null;
+
+      // Enable Lesson Viewer nav tab
+      const lessonNav = document.getElementById("nav-lesson-viewer");
+      lessonNav.classList.remove("opacity-50", "cursor-not-allowed");
+      lessonNav.disabled = false;
+
+      // Update sidebar course title
+      document.getElementById("active-course-title").textContent = course.title;
+
+      // Switch to viewer
+      switchView("lesson-viewer");
+      
+      // Load lessons
+      await fetchLessons(courseId);
+    }
+
+    async function fetchLessons(courseId) {
+      try {
+        const lessons = await apiRequest(`/courses/${courseId}/lessons`);
+        state.lessons = lessons;
+        renderLessonsList();
+        
+        // Hide viewer container, show placeholder
+        document.getElementById("lesson-split-container").classList.add("hidden");
+        document.getElementById("lesson-content-placeholder").classList.remove("hidden");
+      } catch (err) {}
+    }
+
+    function renderLessonsList() {
+      const list = document.getElementById("lesson-sidebar-list");
+      list.innerHTML = "";
+
+      if (state.lessons.length === 0) {
+        list.innerHTML = `<span class="text-xs text-slate-500 text-center py-4">No lessons in this course yet.</span>`;
+        return;
+      }
+
+      state.lessons.forEach(lesson => {
+        const btn = document.createElement("button");
+        btn.onclick = () => selectLesson(lesson.id);
+        btn.id = `lesson-btn-${lesson.id}`;
+        btn.className = "w-full text-left px-4 py-3 rounded-xl transition-all text-xs font-semibold text-slate-400 hover:bg-slate-800/40 flex items-center justify-between border border-transparent";
+        
+        btn.innerHTML = `
+          <div class="flex items-center gap-2.5 truncate">
+            <span class="text-[10px] bg-slate-800 border border-slate-700 w-5 h-5 rounded-md flex items-center justify-center text-slate-400 shrink-0 font-bold">${lesson.id}</span>
+            <span class="truncate text-slate-300">${lesson.title}</span>
+          </div>
+        `;
+        list.appendChild(btn);
+      });
+    }
+
+    async function selectLesson(lessonId) {
+      const lesson = state.lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      state.currentLesson = lesson;
+
+      // Highlight active lesson list item
+      state.lessons.forEach(l => {
+        const btn = document.getElementById(`lesson-btn-${l.id}`);
+        if (btn) {
+          btn.classList.remove("bg-brand-600/10", "border-brand-500/20", "text-indigo-400");
+          btn.classList.add("text-slate-400");
+        }
+      });
+
+      const activeBtn = document.getElementById(`lesson-btn-${lessonId}`);
+      if (activeBtn) {
+        activeBtn.classList.add("bg-brand-600/10", "border-brand-500/20", "text-indigo-400");
+        activeBtn.classList.remove("text-slate-400");
+      }
+
+      // Render Lesson Panel
+      document.getElementById("active-lesson-title").textContent = lesson.title;
+      document.getElementById("active-lesson-text").innerHTML = `<p class="whitespace-pre-line text-sm text-slate-300">${lesson.content || "No lesson contents provided yet."}</p>`;
+
+      // Show container
+      document.getElementById("lesson-split-container").classList.remove("hidden");
+      document.getElementById("lesson-content-placeholder").classList.add("hidden");
+
+      // Reset AI Chat log for new lesson
+      resetAiChat();
+
+      // Load Quiz
+      await fetchQuizzes(lessonId);
+    }
+
+    // Modal Add Lesson actions
+    function openAddLessonModal() {
+      document.getElementById("add-lesson-modal").classList.remove("hidden");
+    }
+    function closeAddLessonModal() {
+      document.getElementById("add-lesson-modal").classList.add("hidden");
+    }
+    async function handleCreateLessonSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById("new-lesson-title").value;
+      const content = document.getElementById("new-lesson-content").value;
+
+      try {
+        await apiRequest("/lessons", {
+          method: "POST",
+          body: JSON.stringify({ course_id: state.currentCourse.id, title, content })
+        });
+        showToast("Lesson added successfully!");
+        closeAddLessonModal();
+
+        // Clear values
+        document.getElementById("new-lesson-title").value = "";
+        document.getElementById("new-lesson-content").value = "";
+
+        fetchLessons(state.currentCourse.id);
+      } catch (err) {}
+    }
+
+    // Progress Completion
+    async function handleMarkComplete() {
+      if (!state.currentLesson) return;
+      try {
+        await apiRequest(`/lessons/${state.currentLesson.id}/complete`, { method: "POST" });
+        showToast("Lesson completed successfully!");
+      } catch (err) {}
+    }
+
+    // --- QUIZ OPERATIONS ---
+
+    async function fetchQuizzes(lessonId) {
+      try {
+        const quizzes = await apiRequest(`/lessons/${lessonId}/quiz`);
+        state.quizzes = quizzes;
+        renderQuizWidget();
+      } catch (err) {}
+    }
+
+    function renderQuizWidget() {
+      const container = document.getElementById("quiz-widget-container");
+      container.innerHTML = "";
+
+      if (state.quizzes.length === 0) {
+        container.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-6 text-center text-slate-500">
+            <p class="text-xs">No quiz questions loaded for this lesson.</p>
+          </div>
+        `;
+        return;
+      }
+
+      state.quizzes.forEach((quiz, index) => {
+        const widget = document.createElement("div");
+        widget.className = "p-5 rounded-2xl glass space-y-3 relative";
+        
+        widget.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-indigo-400 font-extrabold tracking-widest uppercase">QUESTION #${index + 1}</span>
+            <div id="quiz-badge-${quiz.id}" class="text-[10px] font-bold px-2 py-0.5 rounded-full hidden"></div>
+          </div>
+          <p class="text-xs text-slate-200 font-medium leading-relaxed">${quiz.question}</p>
+          
+          <form onsubmit="handleQuizSubmit(event, ${quiz.id})" class="flex flex-col gap-2 pt-2">
+            <input type="text" id="quiz-input-${quiz.id}" required class="w-full px-3 py-2 text-xs rounded-xl glass-input text-slate-100 outline-none" placeholder="Your answer...">
+            <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all">Submit Response</button>
+          </form>
+        `;
+        container.appendChild(widget);
+      });
+    }
+
+    async function handleQuizSubmit(e, quizId) {
+      e.preventDefault();
+      const inputVal = document.getElementById(`quiz-input-${quizId}`).value;
+
+      try {
+        const data = await apiRequest(`/lessons/${state.currentLesson.id}/quiz/submit`, {
+          method: "POST",
+          body: JSON.stringify({ quiz_id: quizId, submitted_answer: inputVal })
+        });
+
+        const badge = document.getElementById(`quiz-badge-${quizId}`);
+        badge.classList.remove("hidden", "bg-emerald-950", "text-emerald-400", "bg-red-950", "text-red-400");
+        
+        if (data.correct) {
+          badge.textContent = "Correct";
+          badge.classList.add("bg-emerald-950", "text-emerald-400");
+          showToast("Well done! That's correct.");
+        } else {
+          badge.textContent = "Incorrect";
+          badge.classList.add("bg-red-950", "text-red-400");
+          showToast("Incorrect answer. Try again!", "error");
+        }
+      } catch (err) {}
+    }
+
+    // Modal Add Quiz actions
+    function openAddQuizModal() {
+      document.getElementById("add-quiz-modal").classList.remove("hidden");
+    }
+    function closeAddQuizModal() {
+      document.getElementById("add-quiz-modal").classList.add("hidden");
+    }
+    async function handleCreateQuizSubmit(e) {
+      e.preventDefault();
+      const question = document.getElementById("new-quiz-question").value;
+      const correct_answer = document.getElementById("new-quiz-answer").value;
+
+      try {
+        await apiRequest(`/lessons/${state.currentLesson.id}/quiz`, {
+          method: "POST",
+          body: JSON.stringify({ question, correct_answer })
+        });
+        showToast("Quiz question added!");
+        closeAddQuizModal();
+
+        // Clear inputs
+        document.getElementById("new-quiz-question").value = "";
+        document.getElementById("new-quiz-answer").value = "";
+
+        fetchQuizzes(state.currentLesson.id);
+      } catch (err) {}
+    }
+
+    // --- AI TUTOR OPERATIONS ---
+
+    function toggleAiTutorPanel() {
+      const panel = document.getElementById("ai-tutor-panel");
+      const isHidden = panel.classList.contains("translate-x-full");
+
+      if (isHidden) {
+        panel.classList.remove("hidden");
+        // Trigger animation reflow
+        setTimeout(() => {
+          panel.classList.remove("translate-x-full");
+        }, 50);
+      } else {
+        panel.classList.add("translate-x-full");
+        setTimeout(() => {
+          panel.classList.add("hidden");
+        }, 300);
+      }
+    }
+
+    function resetAiChat() {
+      const history = document.getElementById("ai-chat-history");
+      history.innerHTML = `
+        <div class="flex gap-2.5 max-w-[85%]">
+          <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+          <div class="p-3 bg-slate-800/80 rounded-2xl rounded-tl-none border border-slate-700/50 text-slate-300 text-xs leading-relaxed">
+            Hello! I'm your AI Academic Tutor for this lesson. Ask me any question related to the material, and I'll clarify it for you!
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleAskTutor(e) {
+      e.preventDefault();
+      const input = document.getElementById("ai-question-input");
+      const questionText = input.value.trim();
+      if (!questionText || !state.currentLesson) return;
+
+      // Append user message to logs
+      appendChatBubble(questionText, "user");
+      input.value = "";
+
+      // Show typing indicator
+      const indicator = document.getElementById("ai-typing-indicator");
+      indicator.classList.remove("hidden");
+      
+      const chatHistory = document.getElementById("ai-chat-history");
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      try {
+        const data = await apiRequest("/ai-tutor/ask", {
+          method: "POST",
+          body: JSON.stringify({ lesson_id: state.currentLesson.id, question: questionText })
+        });
+
+        // Hide indicator
+        indicator.classList.add("hidden");
+
+        // Append AI response
+        appendChatBubble(data.response, "ai");
+      } catch (err) {
+        indicator.classList.add("hidden");
+      }
+    }
+
+    function appendChatBubble(text, sender) {
+      const history = document.getElementById("ai-chat-history");
+      const bubble = document.createElement("div");
+      
+      if (sender === "user") {
+        bubble.className = "flex gap-2.5 max-w-[85%] ml-auto justify-end";
+        bubble.innerHTML = `
+          <div class="p-3 bg-indigo-600 rounded-2xl rounded-tr-none text-slate-100 text-xs leading-relaxed">
+            ${text}
+          </div>
+        `;
+      } else {
+        bubble.className = "flex gap-2.5 max-w-[85%]";
+        bubble.innerHTML = `
+          <div class="h-7 w-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+          <div class="p-3 bg-slate-800/80 rounded-2xl rounded-tl-none border border-slate-700/50 text-slate-300 text-xs leading-relaxed whitespace-pre-line">
+            ${text}
+          </div>
+        `;
+      }
+
+      history.appendChild(bubble);
+      history.scrollTop = history.scrollHeight;
+    }
+  </script>
+</body>
+</html>
