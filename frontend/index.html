@@ -999,9 +999,13 @@
 
     async function handleAskTutor(e) {
       e.preventDefault();
+      if (!state.currentLesson) {
+        alert('Please select a lesson from the list before asking the tutor!');
+        return;
+      }
       const input = document.getElementById("ai-question-input");
       const questionText = input.value.trim();
-      if (!questionText || !state.currentLesson) return;
+      if (!questionText) return;
 
       // Append user message to logs
       appendChatBubble(questionText, "user");
