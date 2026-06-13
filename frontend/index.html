@@ -863,10 +863,38 @@
     // Progress Completion
     async function handleMarkComplete() {
       if (!state.currentLesson) return;
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast("Authorization token not found. Please log in.", "error");
+        handleLogout();
+        return;
+      }
+
       try {
-        await apiRequest(`/lessons/${state.currentLesson.id}/complete`, { method: "POST" });
+        const response = await fetch(`${API_URL}/lessons/${state.currentLesson.id}/complete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          showToast("Session expired or unauthorized. Please log back in.", "error");
+          handleLogout();
+          return;
+        }
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.detail || "Could not mark lesson as completed");
+        }
+
         showToast("Lesson completed successfully!");
-      } catch (err) {}
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     }
 
     // --- QUIZ OPERATIONS ---
