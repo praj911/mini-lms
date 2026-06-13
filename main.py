@@ -3,6 +3,8 @@ from fastapi import FastAPI, Depends, HTTPException, status
 # pyrefly: ignore [missing-import]
 from fastapi.staticfiles import StaticFiles
 # pyrefly: ignore [missing-import]
+from fastapi.responses import FileResponse
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
@@ -33,13 +35,17 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-app.mount('/frontend', StaticFiles(directory='frontend'), name='frontend')
+app.mount('/frontend', StaticFiles(directory='frontend', html=True), name='frontend')
 
 # Automatically create database tables on startup
 models.Base.metadata.create_all(bind=engine)
 
 # Include the AI Tutor Router
 app.include_router(ai_tutor.router)
+
+@app.get('/')
+def read_root():
+    return FileResponse('frontend/index.html')
 
 
 # --- Pydantic Schemas for Requests and Responses ---
