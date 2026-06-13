@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 # Local imports
-from database import get_db, engine
+from database import get_db, engine, SessionLocal
 import models
 import auth
 from auth import get_current_user, require_role, hash_password, verify_password, create_access_token
@@ -39,6 +39,40 @@ app.mount('/frontend', StaticFiles(directory='frontend', html=True), name='front
 
 # Automatically create database tables on startup
 models.Base.metadata.create_all(bind=engine)
+
+# Seed database with default data if empty
+db = SessionLocal()
+try:
+    if db.query(models.Course).count() == 0:
+        # 1. Create a default Course
+        default_course = models.Course(
+            title="Introduction to Python",
+            description="Master foundational programming concepts."
+        )
+        db.add(default_course)
+        db.commit()
+        db.refresh(default_course)
+
+        # 2. Create a default Lesson under that Course
+        default_lesson = models.Lesson(
+            course_id=default_course.id,
+            title="Variables and Data Types",
+            content="Variables are placeholders that store data values in memory. Python supports integers for whole numbers, strings for text messages, and floating points for decimal values."
+        )
+        db.add(default_lesson)
+        db.commit()
+        db.refresh(default_lesson)
+
+        # 3. Create a default Quiz under that Lesson
+        default_quiz = models.Quiz(
+            lesson_id=default_lesson.id,
+            question="Which data type is used for fractional numbers?",
+            correct_answer="float"
+        )
+        db.add(default_quiz)
+        db.commit()
+finally:
+    db.close()
 
 # Include the AI Tutor Router
 app.include_router(ai_tutor.router)
