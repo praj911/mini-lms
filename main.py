@@ -44,33 +44,146 @@ models.Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 try:
     if db.query(models.Course).count() == 0:
-        # 1. Create a default Course
-        default_course = models.Course(
-            title="Introduction to Python",
-            description="Master foundational programming concepts."
-        )
-        db.add(default_course)
-        db.commit()
-        db.refresh(default_course)
+        seed_data = [
+            {
+                "course_title": "Introduction to Python",
+                "course_description": "Master foundational programming concepts.",
+                "lesson_title": "Variables and Data Types",
+                "lesson_content": "Variables are placeholders that store data values in memory. Python supports integers for whole numbers, strings for text messages, and floating points for decimal values.",
+                "quizzes": [
+                    {"question": "Which data type is used for fractional numbers?", "correct_answer": "float"},
+                    {"question": "What keyword is used to define a function in Python?", "correct_answer": "def"},
+                    {"question": "Which symbol initializes a comment block?", "correct_answer": "#"},
+                    {"question": "What is the output of type(True)?", "correct_answer": "bool"},
+                    {"question": "Which collection type is immutable?", "correct_answer": "tuple"},
+                    {"question": "How do you append an item to a list?", "correct_answer": "append"},
+                    {"question": "What operator calculates exponents?", "correct_answer": "**"},
+                    {"question": "Which keyword handles exception catching?", "correct_answer": "except"},
+                    {"question": "What function reads user keyboard input?", "correct_answer": "input"},
+                    {"question": "Which statement breaks out of a loop?", "correct_answer": "break"},
+                ]
+            },
+            {
+                "course_title": "Introduction to Web Development",
+                "course_description": "Learn the core technologies of the Web.",
+                "lesson_title": "Understanding the DOM and HTML",
+                "lesson_content": "The Document Object Model (DOM) is a programming interface for web documents. It represents the page so that programs can change the document structure, style, and content. HTML provides the basic structure of sites.",
+                "quizzes": [
+                    {"question": "Which HTML tag is used for the main heading?", "correct_answer": "h1"},
+                    {"question": "What attribute specifies an image source url?", "correct_answer": "src"},
+                    {"question": "Which HTML element creates a bulleted list?", "correct_answer": "ul"},
+                    {"question": "What does CSS stand for?", "correct_answer": "Cascading Style Sheets"},
+                    {"question": "Which tag embeds JavaScript inline?", "correct_answer": "script"},
+                    {"question": "What property changes text color in CSS?", "correct_answer": "color"},
+                    {"question": "Which tag defines a hyperlink anchor?", "correct_answer": "a"},
+                    {"question": "What CSS layout tool uses tracks and grid lines?", "correct_answer": "grid"},
+                    {"question": "Which HTML element creates a dropdown selection input?", "correct_answer": "select"},
+                    {"question": "What property adds spacing inside an element border?", "correct_answer": "padding"},
+                ]
+            },
+            {
+                "course_title": "Artificial Intelligence Foundations",
+                "course_description": "Understand basic AI principles.",
+                "lesson_title": "Supervised vs Unsupervised Learning",
+                "lesson_content": "Supervised learning uses labeled training data, while unsupervised learning deals with unlabeled data, trying to find underlying structures or patterns dynamically.",
+                "quizzes": [
+                    {"question": "What type of machine learning uses labeled datasets?", "correct_answer": "supervised learning"},
+                    {"question": "What is an algorithm's output error called?", "correct_answer": "loss"},
+                    {"question": "Which network structure mimics biological neurons?", "correct_answer": "neural network"},
+                    {"question": "What is the standard NLP parsing unit?", "correct_answer": "token"},
+                    {"question": "Which ML subfield utilizes deep neural networks?", "correct_answer": "deep learning"},
+                    {"question": "What term describes a model overfitting training steps?", "correct_answer": "overfitting"},
+                    {"question": "Which math branch calculates neural descent steps?", "correct_answer": "calculus"},
+                    {"question": "What algorithm type groups unlabeled data items?", "correct_answer": "clustering"},
+                    {"question": "Which component acts as the baseline feature vector?", "correct_answer": "embedding"},
+                    {"question": "What state is reached when model adjustments stop changing?", "correct_answer": "convergence"},
+                ]
+            },
+            {
+                "course_title": "Database Systems & SQL",
+                "course_description": "Master structured databases.",
+                "lesson_title": "Relational Schemas and Queries",
+                "lesson_content": "Relational databases store data in tables with predefined schemas. SQL allows you to fetch, update, insert, and join data across multiple relational boundaries.",
+                "quizzes": [
+                    {"question": "What does SQL stand for?", "correct_answer": "Structured Query Language"},
+                    {"question": "Which command retrieves data rows from a table?", "correct_answer": "SELECT"},
+                    {"question": "What key uniquely identifies a specific row?", "correct_answer": "primary key"},
+                    {"question": "Which clause filters rows based on a condition?", "correct_answer": "WHERE"},
+                    {"question": "What command removes an entire table structure?", "correct_answer": "DROP TABLE"},
+                    {"question": "Which constraint prevents duplicate values?", "correct_answer": "UNIQUE"},
+                    {"question": "What operation combines rows from multiple tables?", "correct_answer": "JOIN"},
+                    {"question": "Which aggregate function counts the total rows?", "correct_answer": "COUNT"},
+                    {"question": "What clause groups rows sharing matching attributes?", "correct_answer": "GROUP BY"},
+                    {"question": "What property guarantees complete transaction safety?", "correct_answer": "ACID"},
+                ]
+            },
+            {
+                "course_title": "JavaScript Fundamentals",
+                "course_description": "Deep dive into JS language basics.",
+                "lesson_title": "Async Patterns and Promises",
+                "lesson_content": "JavaScript is a single-threaded non-blocking runtime. Asynchronous operations are handled using callbacks, promises, and async/await mechanisms to process network and disk routines.",
+                "quizzes": [
+                    {"question": "Which keyword declares a block-scoped variable?", "correct_answer": "let"},
+                    {"question": "What built-in object represents an error statement?", "correct_answer": "Error"},
+                    {"question": "Which keyword pauses execution inside an async block?", "correct_answer": "await"},
+                    {"question": "What method safely parses a JSON string layout?", "correct_answer": "JSON.parse"},
+                    {"question": "Which symbol represents strict equality validation?", "correct_answer": "==="},
+                    {"question": "What array method maps item modifications?", "correct_answer": "map"},
+                    {"question": "Which function schedules deferred loop executions?", "correct_answer": "setTimeout"},
+                    {"question": "What container manages eventual async success states?", "correct_answer": "Promise"},
+                    {"question": "Which method logs debugging outputs to screen consoles?", "correct_answer": "console.log"},
+                    {"question": "What concept allows inner functions access to outer scopes?", "correct_answer": "closure"},
+                ]
+            },
+            {
+                "course_title": "Software Engineering Frameworks",
+                "course_description": "Workflows, version control, and design patterns.",
+                "lesson_title": "Git Workflow and Systems Architecture",
+                "lesson_content": "Git manages branch structures, mergers, and distributed code push routines. Architectures define component communication boundaries and system execution tiers.",
+                "quizzes": [
+                    {"question": "Which command initializes a local Git tracking folder?", "correct_answer": "git init"},
+                    {"question": "What file patterns are bypassed using a .gitignore layout?", "correct_answer": "excluded files"},
+                    {"question": "Which command uploads local history chunks to remote servers?", "correct_answer": "git push"},
+                    {"question": "What structural pattern uses decoupled micro-services?", "correct_answer": "microservices"},
+                    {"question": "Which diagram maps out system state timelines?", "correct_answer": "sequence diagram"},
+                    {"question": "What deployment process runs automated test verifications?", "correct_answer": "CI/CD"},
+                    {"question": "Which Git command joins history paths together?", "correct_answer": "git merge"},
+                    {"question": "What testing tier evaluates individual modules isolated?", "correct_answer": "unit testing"},
+                    {"question": "Which agile tool acts as a visual workflow pipeline?", "correct_answer": "kanban board"},
+                    {"question": "What layout documentation exposes available REST protocols?", "correct_answer": "OpenAPI Swagger"},
+                ]
+            }
+        ]
 
-        # 2. Create a default Lesson under that Course
-        default_lesson = models.Lesson(
-            course_id=default_course.id,
-            title="Variables and Data Types",
-            content="Variables are placeholders that store data values in memory. Python supports integers for whole numbers, strings for text messages, and floating points for decimal values."
-        )
-        db.add(default_lesson)
-        db.commit()
-        db.refresh(default_lesson)
+        for item in seed_data:
+            # Create Course
+            course = models.Course(
+                title=item["course_title"],
+                description=item["course_description"]
+            )
+            db.add(course)
+            db.commit()
+            db.refresh(course)
 
-        # 3. Create a default Quiz under that Lesson
-        default_quiz = models.Quiz(
-            lesson_id=default_lesson.id,
-            question="Which data type is used for fractional numbers?",
-            correct_answer="float"
-        )
-        db.add(default_quiz)
-        db.commit()
+            # Create Lesson under Course
+            lesson = models.Lesson(
+                course_id=course.id,
+                title=item["lesson_title"],
+                content=item["lesson_content"]
+            )
+            db.add(lesson)
+            db.commit()
+            db.refresh(lesson)
+
+            # Create Quizzes under Lesson
+            for quiz_item in item["quizzes"]:
+                quiz = models.Quiz(
+                    lesson_id=lesson.id,
+                    question=quiz_item["question"],
+                    correct_answer=quiz_item["correct_answer"]
+                )
+                db.add(quiz)
+            db.commit()
 finally:
     db.close()
 
